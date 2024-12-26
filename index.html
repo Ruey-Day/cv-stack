@@ -37,6 +37,7 @@
       justify-content: center;
       align-items: center;
       background-color: #f9f9f9;
+      box-shadow: inset 0px 2px 4px rgba(0, 0, 0, 0.1);
     }
     .icon {
       position: absolute;
@@ -50,6 +51,7 @@
       color: #fff;
       cursor: pointer;
       transition: transform 0.2s, top 0.5s, left 0.5s;
+      box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.5);
     }
     .icon.type1 {
       background-color: #ff6961;
@@ -81,6 +83,7 @@
     <div class="slot" data-index="3"></div>
     <div class="slot" data-index="4"></div>
     <div class="slot" data-index="5"></div>
+    <div class="slot" data-index="6"></div>
   </div>
   <div id="controls">
     <button id="restart-btn">Restart</button>
@@ -91,25 +94,23 @@
     const restartBtn = document.getElementById("restart-btn");
 
     const ICON_TYPES = ["type1", "type2", "type3"];
-    let score = 0;
+    const TOTAL_PAIRS = 6; // Number of groups of 3 icons (e.g., 4 groups = 12 icons total)
+    const iconCounts = { type1: 0, type2: 0, type3: 0 }; // To track counts
 
-    function createIcon() {
+    function createIcon(type) {
       const icon = document.createElement("div");
-      icon.classList.add("icon");
-      const randomType = ICON_TYPES[Math.floor(Math.random() * ICON_TYPES.length)];
-      icon.classList.add(randomType);
+      icon.classList.add("icon", type);
       icon.style.top = `${Math.random() * (gameContainer.clientHeight - 50)}px`;
       icon.style.left = `${Math.random() * (gameContainer.clientWidth - 50)}px`;
 
-      icon.addEventListener("click", () => {
-        moveToBottom(icon);
+      icon.addEventListener("click", (event) => {
+          moveToBottom(icon);
       });
 
       gameContainer.appendChild(icon);
     }
 
     function moveToBottom(icon) {
-      // Find the first empty slot
       const emptySlot = slots.find(slot => !slot.firstChild);
 
       if (emptySlot) {
@@ -130,24 +131,35 @@
             const child = slot.firstChild;
             if (child && child.classList.contains(type)) {
               slot.innerHTML = "";
+              iconCounts[type]--; // Decrement the count
             }
           });
-          score += 10;
-          alert(`Matched 3 ${type} tiles! Score: ${score}`);
         }
       });
+
+      if (filledSlots.length === 7) {
+        alert("Game Over! No more matches.");
+        restartGame();
+      }
     }
 
-    function startGame() {
+    function restartGame() {
       gameContainer.innerHTML = "";
       slots.forEach(slot => (slot.innerHTML = ""));
-      score = 0;
-      for (let i = 0; i < 20; i++) createIcon();
+      Object.keys(iconCounts).forEach(type => iconCounts[type] = 0); // Reset counts
+
+      // Generate icons in groups of 3
+      for (let i = 0; i < TOTAL_PAIRS; i++) {
+        ICON_TYPES.forEach(type => {
+          createIcon(type);
+          iconCounts[type]++;
+        });
+      }
     }
 
-    restartBtn.addEventListener("click", startGame);
+    restartBtn.addEventListener("click", restartGame);
 
-    startGame();
+    restartGame();
   </script>
 </body>
 </html>
